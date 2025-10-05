@@ -4,6 +4,8 @@
 #include <mutex>
 #include <ctime>
 #include <cstdlib>
+#include <thread>
+#include <functional>
 using namespace std;
 
 int PAGE_SIZE = 200; //Page size and page frame size
@@ -49,8 +51,10 @@ struct JobTableEntry {
 
 void acceptJobs(int n, vector<Job>& jobs);
 void moveJobsToPages(vector<Job>& jobs);
-void processJobs(vector<Job>& jobs);
-void processIndividualJob(Job& job);
+void processJobs(Job& job, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
+vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables);
+void processIndividualJob(Job& job, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
+vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables);
 PageMapTableEntry getPageMapTableEntryByPageNumber(int page_no, vector<PageMapTableEntry>& pageMapTable);
 
 int main(){
@@ -149,8 +153,20 @@ PageMapTableEntry getPageMapTableEntryByPageNumber(int page_no, vector<PageMapTa
     return invalid;
 }
 
-void processJobs(vector<Job>& jobs){
+void processJobs(vector<Job>& jobs, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
+vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables){
     //processing jobs sequentially by spinning up threads
+    vector<thread> threads;
+    for(auto& job: jobs){
+        threads.push_back(
+            thread(
+                processIndividualJob, ref(job), ref(pageFrames), ref(memoryMapTable),
+        ref(jobTable), ref(pageMapTables)));
+    }
+
+    for(auto& t: threads){
+        t.join();
+    }
 }
 
 void processIndividualJob(Job& job, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
