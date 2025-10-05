@@ -50,8 +50,8 @@ struct JobTableEntry {
 };
 
 void acceptJobs(int n, vector<Job>& jobs);
-void moveJobsToPages(vector<Job>& jobs);
-void processJobs(Job& job, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
+void moveJobsToPages(vector<Job>& jobs, vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables);
+void processJobs(vector<Job>& jobs, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
 vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables);
 void processIndividualJob(Job& job, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
 vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables);
@@ -86,9 +86,11 @@ int main(){
         MemoryMapTableEntry memoryMapTableEntry;
         memoryMapTableEntry.page_frame_no = i;
         memoryMapTableEntry.is_occupied = false;
+        memoryMapTable.push_back(memoryMapTableEntry);
     }
 
-    //moveJobsToPages(jobs);
+    moveJobsToPages(jobs, jobTable, pageMapTables);
+    processJobs(jobs, pageFrames, memoryMapTable, jobTable, pageMapTables);
 
 
 
@@ -101,7 +103,7 @@ void acceptJobs(int n, vector<Job>& jobs){
         Job job;
         cout<<"Enter the size of job "<<i++<<endl;
         cin>>size;
-        job.number = i+1;
+        job.number = i;
         job.size = size;
 
         jobs.push_back(job);
@@ -156,6 +158,8 @@ PageMapTableEntry getPageMapTableEntryByPageNumber(int page_no, vector<PageMapTa
 void processJobs(vector<Job>& jobs, vector<PageFrame>& pageFrames, vector<MemoryMapTableEntry>& memoryMapTable,
 vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables){
     //processing jobs sequentially by spinning up threads
+
+    cout<<"There are "<<jobs.size()<<" jobs"<<endl;
     vector<thread> threads;
     for(auto& job: jobs){
         threads.push_back(
@@ -179,7 +183,7 @@ vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTable
     If we find that there is no space then we call the deallocation algorithm that makes use of FIFO or LIFO
     */
 
-
+    cout<<"Processing job "<<job.number<<endl;
 
    lock_guard<mutex> lock(mtx);
 
@@ -189,6 +193,7 @@ vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTable
         int randomJobIndex = (rand()%job.pages.size());
 
         Page requestedPage = job.pages[randomJobIndex];
+        cout<<"Page "<<requestedPage.page_no<<" has been requested";
 
         //check if the requested page is already loaded
         PageMapTableEntry row = getPageMapTableEntryByPageNumber(requestedPage.page_no, pageMapTable);
@@ -197,6 +202,8 @@ vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTable
             return;
         }
         if(row.status){
+
+            cout<<"Page "<<requestedPage.page_no<<" has been loaded to memoryh already"<<endl;
             //we have been loaded to memory
             row.referenced = true;
             
