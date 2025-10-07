@@ -112,7 +112,7 @@ void acceptJobs(int n, vector<Job>& jobs){
 
 void moveJobsToPages(vector<Job>& jobs, vector<JobTableEntry>& jobTable, vector<vector<PageMapTableEntry>>& pageMapTables){
     int pageNo = 0;
-    for(int i = 0; i<jobs.size(); ++i){
+    for(int i = 0; i< jobs.size(); ++i){
         auto& job = jobs[i];
         
         JobTableEntry jobTableEntry;
