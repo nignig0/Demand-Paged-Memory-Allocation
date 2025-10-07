@@ -43,7 +43,7 @@ struct PageFrame {
     time_t last_used = 0;    
 };
 
-// Struct for Page Map Table entry for virtual → physical mapping
+// Struct for Page Map Table entry for virtual
 struct PageMapTableEntry {
     int page_no, page_frame_no = -1;
     bool modified = false, referenced = false, status = false;
@@ -334,7 +334,7 @@ void addressResolution(int logical_addr, int page_size, int frame_no) {
          << " => Physical Address " << physical_addr << endl;
 }
 
-// Print a simple snapshot of memory frames
+// Print a snapshot of memory frames
 void printMemoryState(const vector<PageFrame>& pageFrames) {
     cout << " Memory frames snapshot:\n";
     for (const auto& f : pageFrames) {
